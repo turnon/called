@@ -1,5 +1,5 @@
 require "called/version"
-require "set"
+require "json"
 
 class Called
 
@@ -13,25 +13,15 @@ class Called
   end
 
   def method_missing meth, *arg, &blk
-    @file.puts Record.new meth, ::Kernel.caller[0]
+    record = {method: meth, stack: ::Kernel.caller, thread: Thread.current.object_id}
+    @file.puts record
     @obj.send meth, *arg, &blk
-  end
-
-  Record = ::Struct.new :method_name, :called_from do
-    def hash
-      [method_name, called_from].hash
-    end
-
-    def eql? record
-      method_name == record.method_name &&
-        called_from == record.called_from
-    end
   end
 
   class LogFile
     def initialize path
       @lock = Mutex.new
-      @set = Set.new
+      @set = []
       @path = path
     end
 
@@ -39,21 +29,9 @@ class Called
       @lock.synchronize do
         @set << record
         File.open @path, 'w' do |f|
-          f.puts format @set
+          f.puts @set.to_json
         end
       end
-    end
-
-    def format set
-      records= set.to_a
-      max_len = records.
-        max{|rec| rec.method_name.length}.
-        method_name.
-        length + 1
-      records.map do |rec|
-        formatted = "%#{max_len}s" % rec.method_name
-        "#{formatted} | #{rec.called_from}"
-      end.join "\n"
     end
   end
 
