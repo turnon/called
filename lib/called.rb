@@ -1,7 +1,7 @@
-require "called/version"
 require "json"
+require "erb"
 
-class Called
+class Called < BasicObject
 
   def self.on obj, path={}
     new obj, path[:log]
@@ -13,7 +13,7 @@ class Called
   end
 
   def method_missing meth, *arg, &blk
-    record = {method: meth, stack: ::Kernel.caller, thread: Thread.current.object_id}
+    record = {thread: ::Thread.current.object_id, method: meth, stack: ::Kernel.caller}
     @file.puts record
     @obj.send meth, *arg, &blk
   end
@@ -29,10 +29,20 @@ class Called
       @lock.synchronize do
         @set << record
         File.open @path, 'w' do |f|
-          f.puts @set.to_json
+          json = @set.to_json
+          str = template.result binding
+          f.puts str
         end
       end
+    end
+
+    def template
+      return @tmpl if defined? @tmpl
+      tmpl = File.expand_path('../called/tmpl.html.erb', __FILE__)
+      @tmpl = ::ERB.new File.read tmpl
     end
   end
 
 end
+
+require "called/version"

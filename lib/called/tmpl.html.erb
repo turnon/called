@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <div id='table'></div>
+    <script>
+      var data = <%= json %>;
+      function uniq(key){
+        return function (){
+          var d = data.reduce(function(result, e){
+            result[e[key]] = null;
+            return result;
+          }, {});
+          return Object.keys(d);
+        }
+      }
+      var methods = uniq('method');
+      var threads = uniq('thread');
+      Array.prototype.push_mass = function(){
+        for(var i = 0; i < arguments.length; i++){
+          this.push(arguments[i]);
+        }
+      };
+
+      var table = ['<table><thead><tr><th>thread</th><th>method</th><th>stack</th></tr></thead><tbody>'];
+      data.forEach(function(r){
+        table.push_mass('<tr>', '<td>', r.thread, '</td>', '<td>', r.method, '</td>', '<td>', r.stack[0], '</td>', '</tr>');
+      });
+      table.push('</tbody></table>');
+      var t = table.join('');
+      document.getElementById('table').innerHTML = t;
+    </script>
+  </body>
+</html>
+
