@@ -12,7 +12,7 @@ class CalledTest < Minitest::Test
   def test_it_does_something_useful
     arr = []
 
-    c = Called.on arr, log: '/tmp/called_test.txt'
+    c = Called.on arr, log: '/tmp/called_test.html'
     threads = 3.times.map do
       Thread.new do
         rand_lock { c.push 1 }
