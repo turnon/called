@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <style>
+      #detail {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: black;
+        color: white;
+        transition: all 0.5s ease
+      }
+
+      #detail ul {
+        padding: 1rem 2rem 1rem 1rem;
+      }
+
+      #detail li {
+        list-style: none;
+      }
+
+      .hidden {
+        visibility: hidden;
+        opacity: 0;
+      }
+
+      .chosen {
+        background-color: cyan;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='table'></div>
+    <div id='detail'><div>
+    <script>
+      var data = <%= json %>;
+
+      function uniq(key){
+        return function (){
+          var d = data.reduce(function(result, e){
+            result[e[key]] = null;
+            return result;
+          }, {});
+          return Object.keys(d);
+        }
+      }
+
+      var methods = uniq('method');
+      var threads = uniq('thread');
+
+      Array.prototype.push_mass = function(){
+        for(var i = 0; i < arguments.length; i++){
+          this.push(arguments[i]);
+        }
+      };
+
+      // table
+      (function(){
+        var table = ['<table><thead><tr><th>thread</th><th>method</th><th>stack</th></tr></thead><tbody>'];
+        data.forEach(function(r, i){
+          table.push_mass('<tr id="', i, '">', '<td>', r.thread, '</td>', '<td>', r.method, '</td>', '<td>', r.stack[0], '</td>', '</tr>');
+        });
+        table.push('</tbody></table>');
+        var t = table.join('');
+        document.getElementById('table').innerHTML = t;
+      })();
+
+      // detail
+      (function(){
+        function tr_of(el){
+          while(el.nodeName !== 'TR') {
+            el = el.parentElement;
+          }
+          return el;
+        }
+
+        function next_choise() {
+          var chosen = document.querySelector('.chosen');
+          if(chosen) {
+            chosen.setAttribute('class', null);
+          }
+        }
+
+        function make_ul(arr){
+          var ul = ['<ul>'];
+          arr.forEach(function(r){
+            ul.push_mass('<li>', r, '</li>');
+          })
+          ul.push('</ul>');
+          return ul.join('');
+        }
+
+        var tbody = document.querySelector('#table tbody')
+
+        tbody.addEventListener('click', function(ev){
+          next_choise();
+          var tr = tr_of(ev.target);
+          tr.setAttribute('class', 'chosen');
+          var detail = document.getElementById('detail');
+          detail.setAttribute('class', 'hidden');
+          detail.innerHTML = make_ul(data[tr.id].stack);
+          setTimeout(function(){
+            detail.setAttribute('class', null);
+          }, 500);
+        });
+      })();
+    </script>
+  </body>
+</html>
