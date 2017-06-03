@@ -2,6 +2,7 @@ require "json"
 require "erb"
 
 class Called < BasicObject
+  VERSION = "0.1.1"
 
   def self.on obj, path={}
     new obj, path[:log]
@@ -44,5 +45,3 @@ class Called < BasicObject
   end
 
 end
-
-require "called/version"
