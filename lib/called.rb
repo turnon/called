@@ -13,10 +13,22 @@ class Called < BasicObject
     @file = LogFile.new path
   end
 
-  def method_missing meth, *arg, &blk
-    record = {thread: ::Thread.current.object_id, method: meth, stack: ::Kernel.caller}
+  def method_missing method_id, *args, &block
+    log_and_call method_id, *args, &block
+  end
+
+  ::Module.instance_method(:instance_methods).bind(BasicObject).call.each do |method_id|
+    define_method method_id do |*args, &block|
+      log_and_call method_id, *args, &block
+    end
+  end
+
+  private
+
+  def log_and_call method_id, *args, &block
+    record = {thread: ::Thread.current.object_id, method: method_id, stack: ::Kernel.caller[1..-1]}
     @file.puts record
-    @obj.send meth, *arg, &blk
+    @obj.send method_id, *args, &block
   end
 
   class LogFile

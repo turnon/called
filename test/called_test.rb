@@ -20,6 +20,7 @@ class CalledTest < Minitest::Test
         rand_lock { c.push 3 }
         rand_lock { c.push 4 }
         rand_lock { c + c    }
+        rand_lock { c == arr }
       end
     end
     threads.each &:join
