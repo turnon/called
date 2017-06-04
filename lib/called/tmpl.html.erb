@@ -4,38 +4,65 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <style>
-      #detail {
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        background-color: black;
-        color: white;
-        transition: all 0.5s ease;
-        overflow-y: scroll;
+      body {
+        text-align: left;
+        font-size: .8rem;
+        font-family: Consolas;
       }
 
-      #detail ul {
-        padding: 1rem 2rem 1rem 1rem;
+      td, th {
+          vertical-align: top;
+          border-top-style: dashed;
+          border-right-style: dashed;
+          border-width: 1px;
+          padding: .4rem;
       }
 
-      #detail li {
-        list-style: none;
+      tr td:nth-child(1), tr th:nth-child(1) {
+          border-left-style: dashed;
+          border-width: 1px;
       }
 
-      .hidden {
-        visibility: hidden;
-        opacity: 0;
+      tr:last-child td {
+          border-bottom-style: dashed;
+          border-width: 1px;
       }
 
-      .chosen {
-        background-color: cyan;
+      ul {
+          margin: 0;
+          padding: 0;
+          height: 1rem;
+          overflow-y: hidden;
+      }
+
+      li {
+          list-style: none;
+      }
+
+      input {
+        display: none;
+      }
+
+      label {
+        float: left;
+        margin-right: .5rem;
+      }
+
+      label:after {
+        content: "+";
+      }
+
+      input:checked ~ ul {
+        height: 100%;
+      }
+
+      input:checked ~ label:after {
+        content: "-";
       }
     </style>
   </head>
   <body>
     <div id='table'></div>
-    <div id='detail'><div>
     <script>
       var data = <%= json %>;
 
@@ -60,32 +87,8 @@
 
       // table
       (function(){
-        var table = ['<table><thead><tr><th>thread</th><th>method</th><th>stack</th></tr></thead><tbody>'];
-        data.forEach(function(r, i){
-          table.push_mass('<tr id="', i, '">', '<td>', r.thread, '</td>', '<td>', r.method, '</td>', '<td>', r.stack[0], '</td>', '</tr>');
-        });
-        table.push('</tbody></table>');
-        var t = table.join('');
-        document.getElementById('table').innerHTML = t;
-      })();
 
-      // detail
-      (function(){
-        function tr_of(el){
-          while(el.nodeName !== 'TR') {
-            el = el.parentElement;
-          }
-          return el;
-        }
-
-        function next_choise() {
-          var chosen = document.querySelector('.chosen');
-          if(chosen) {
-            chosen.setAttribute('class', null);
-          }
-        }
-
-        function make_ul(arr){
+        function ul(arr){
           var ul = ['<ul>'];
           arr.forEach(function(r){
             ul.push_mass('<li>', r, '</li>');
@@ -94,19 +97,20 @@
           return ul.join('');
         }
 
-        var tbody = document.querySelector('#table tbody')
+        function checkbox(i){
+          var id = 'checkbox-' + i
+          return '<input id="' + id + '" type="checkbox"><label for="' + id + '"></label>'
+        }
 
-        tbody.addEventListener('click', function(ev){
-          next_choise();
-          var tr = tr_of(ev.target);
-          tr.setAttribute('class', 'chosen');
-          var detail = document.getElementById('detail');
-          detail.setAttribute('class', 'hidden');
-          detail.innerHTML = make_ul(data[tr.id].stack);
-          setTimeout(function(){
-            detail.setAttribute('class', null);
-          }, 500);
+        var table = ['<table><thead><tr><th>thread</th><th>method</th><th>stack</th></tr></thead><tbody>'];
+
+        data.forEach(function(r, i){
+          table.push_mass('<tr id="', i, '">', '<td>', r.thread, '</td>', '<td>', r.method, '</td>', '<td>', checkbox(i), ul(r.stack), '</td>', '</tr>');
         });
+
+        table.push('</tbody></table>');
+
+        document.getElementById('table').innerHTML = table.join('');
       })();
     </script>
   </body>
